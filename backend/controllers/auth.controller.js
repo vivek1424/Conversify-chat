@@ -7,7 +7,7 @@ export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });  //returns the document that matches the username
-        const isPasswordCorrect = await bcryptjs.compare(password, user.password || ""); //in case the user fails, 
+        const isPasswordCorrect = await bcryptjs.compare(password, user?.password || ""); //in case the user fails, 
         if (!user || !isPasswordCorrect) {
             return res.status(400).json({ error: "Invalid username or password" });
         }

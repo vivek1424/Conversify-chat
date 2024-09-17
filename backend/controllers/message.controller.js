@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getRecieverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage= async(req, res)=>{
    try {
@@ -42,6 +43,10 @@ export const sendMessage= async(req, res)=>{
     //this will run parallely, while above code will run one after another so this is more efficient
     await Promise.all([conversation.save(), newMessage.save()]);
 
+    const recieverSocketId = getRecieverSocketId(recieverId);
+    if(recieverSocketId){
+        io.to(recieverSocketId).emit("newMessage", newMessage)
+    }
 
      res.status(201).json(newMessage) ; //this will display the message at the postman 
 
@@ -62,7 +67,11 @@ export const getMessage =async(req, res)=> {
             participants: { $all: [senderId, userToChatId]},       
         }).populate("messages");
 
-        res.status(200).json(conversation.messages);
+        if(!conversation) return res.status(200).json([]);
+
+        const messages = conversation.messages;
+
+        res.status(200).json(messages);
         
 
     } catch (error) {
